@@ -229,6 +229,8 @@ class DataGenerator:
             
             for _ in range(num_orders):
                 order_date = self.fake.date_between(start_date=reg_date, end_date='today')
+                # Convert date to datetime for MongoDB compatibility
+                order_date = datetime.combine(order_date, datetime.min.time())
                 order_amount = np.random.lognormal(4, 1)  # Log-normal distribution
                 
                 order = {
@@ -256,10 +258,13 @@ class DataGenerator:
             # Generate support tickets
             num_tickets = np.random.poisson(1)  # Average 1 ticket per customer
             for _ in range(num_tickets):
+                ticket_date = self.fake.date_between(start_date=reg_date, end_date='today')
+                # Convert date to datetime for MongoDB compatibility
+                ticket_date = datetime.combine(ticket_date, datetime.min.time())
                 ticket = {
                     'ticket_id': str(uuid.uuid4()),
                     'customer_id': customer_id,
-                    'created_date': self.fake.date_between(start_date=reg_date, end_date='today'),
+                    'created_date': ticket_date,
                     'issue_type': np.random.choice(['Technical', 'Billing', 'General']),
                     'priority': np.random.choice(['Low', 'Medium', 'High'], p=[0.5, 0.3, 0.2]),
                     'status': np.random.choice(['Open', 'In Progress', 'Resolved'], p=[0.1, 0.2, 0.7]),
@@ -276,12 +281,15 @@ class DataGenerator:
                 rating = np.random.randint(1, 6)
                 ratings.append(rating)
                 
+                feedback_date = self.fake.date_between(start_date=reg_date, end_date='today')
+                # Convert date to datetime for MongoDB compatibility
+                feedback_date = datetime.combine(feedback_date, datetime.min.time())
                 feedback_item = {
                     'feedback_id': str(uuid.uuid4()),
                     'customer_id': customer_id,
                     'rating': rating,
                     'comment': self.fake.text(max_nb_chars=200),
-                    'date': self.fake.date_between(start_date=reg_date, end_date='today'),
+                    'date': feedback_date,
                     'product_id': str(uuid.uuid4())
                 }
                 feedback.append(feedback_item)
