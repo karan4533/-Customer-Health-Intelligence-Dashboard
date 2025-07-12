@@ -182,6 +182,8 @@ class CustomerHealthScorer:
             return 365  # Default to 1 year if no orders
         if isinstance(last_order_date, str):
             last_order_date = datetime.fromisoformat(last_order_date)
+        elif isinstance(last_order_date, date):
+            last_order_date = datetime.combine(last_order_date, datetime.min.time())
         return (datetime.now() - last_order_date).days
 
 # Initialize scorer
