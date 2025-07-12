@@ -205,13 +205,15 @@ class DataGenerator:
             # Generate customer
             customer_id = str(uuid.uuid4())
             reg_date = self.fake.date_between(start_date='-2y', end_date='today')
+            # Convert date to datetime for MongoDB compatibility
+            reg_date_dt = datetime.combine(reg_date, datetime.min.time())
             
             customer = {
                 'customer_id': customer_id,
                 'name': self.fake.name(),
                 'email': self.fake.email(),
                 'phone': self.fake.phone_number(),
-                'registration_date': reg_date,
+                'registration_date': reg_date_dt,
                 'customer_tier': np.random.choice(['Bronze', 'Silver', 'Gold', 'Platinum'], 
                                                 p=[0.4, 0.3, 0.2, 0.1]),
                 'region': np.random.choice(['North', 'South', 'East', 'West']),
