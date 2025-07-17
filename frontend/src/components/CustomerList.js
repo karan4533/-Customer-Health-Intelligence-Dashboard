@@ -109,11 +109,16 @@ const CustomerList = () => {
 
   const handleExport = async () => {
     try {
+      setLoading(true);
       const { message } = await customerAPI.exportCustomers();
+      // Show success message briefly
+      setError(null);
       alert(message);
     } catch (err) {
       console.error('Error exporting customers:', err);
       setError('Failed to export customers. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

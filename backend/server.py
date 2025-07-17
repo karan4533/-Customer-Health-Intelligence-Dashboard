@@ -439,6 +439,45 @@ async def get_dashboard_metrics():
         logger.error(f"Error fetching dashboard metrics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/customers/export")
+async def export_customers():
+    """Export customer data as CSV"""
+    try:
+        cursor = db.customers.find({})
+        customers = await cursor.to_list(length=None)
+        
+        # Convert to CSV
+        output = "customer_id,name,email,phone,registration_date,customer_tier,region,total_orders,total_spent,health_score,churn_risk,lifetime_value\n"
+        for customer in customers:
+            output += f"{customer['customer_id']},{customer['name']},{customer['email']},{customer['phone']},{customer['registration_date']},{customer['customer_tier']},{customer['region']},{customer['total_orders']},{customer['total_spent']},{customer.get('health_score', 0)},{customer.get('churn_risk', 'Low')},{customer.get('lifetime_value', 0)}\n"
+        
+        return Response(content=output, media_type="text/csv")
+    except Exception as e:
+        logger.error(f"Error exporting customers: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/customers/search")
+async def search_customers(query: str):
+    """Search customers by name, email, or ID"""
+    try:
+        cursor = db.customers.find({
+            "$or": [
+                {"name": {"$regex": query, "$options": "i"}},
+                {"email": {"$regex": query, "$options": "i"}},
+                {"customer_id": {"$regex": query, "$options": "i"}}
+            ]
+        }).limit(50)
+        customers = await cursor.to_list(length=50)
+        
+        for customer in customers:
+            if '_id' in customer:
+                del customer['_id']
+        
+        return customers
+    except Exception as e:
+        logger.error(f"Error searching customers: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/customers/{customer_id}")
 async def get_customer_details(customer_id: str):
     """Get detailed customer information"""
@@ -519,45 +558,6 @@ async def get_churn_predictions(limit: int = 10):
         return predictions
     except Exception as e:
         logger.error(f"Error fetching churn predictions: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/customers/search")
-async def search_customers(query: str):
-    """Search customers by name, email, or ID"""
-    try:
-        cursor = db.customers.find({
-            "$or": [
-                {"name": {"$regex": query, "$options": "i"}},
-                {"email": {"$regex": query, "$options": "i"}},
-                {"customer_id": {"$regex": query, "$options": "i"}}
-            ]
-        }).limit(50)
-        customers = await cursor.to_list(length=50)
-        
-        for customer in customers:
-            if '_id' in customer:
-                del customer['_id']
-        
-        return customers
-    except Exception as e:
-        logger.error(f"Error searching customers: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/customers/export")
-async def export_customers():
-    """Export customer data as CSV"""
-    try:
-        cursor = db.customers.find({})
-        customers = await cursor.to_list(length=None)
-        
-        # Convert to CSV
-        output = "customer_id,name,email,phone,registration_date,customer_tier,region,total_orders,total_spent\n"
-        for customer in customers:
-            output += f"{customer['customer_id']},{customer['name']},{customer['email']},{customer['phone']},{customer['registration_date']},{customer['customer_tier']},{customer['region']},{customer['total_orders']},{customer['total_spent']}\n"
-        
-        return Response(content=output, media_type="text/csv")
-    except Exception as e:
-        logger.error(f"Error exporting customers: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/analytics/revenue-trends")
