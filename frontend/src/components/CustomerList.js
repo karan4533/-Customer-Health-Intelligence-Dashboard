@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, 
@@ -6,16 +6,11 @@ import {
   ChevronDown, 
   ArrowUpDown,
   Eye,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  DollarSign,
-  ShoppingCart,
   Activity,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  Download
 } from 'lucide-react';
 import { 
   customerAPI, 
@@ -44,11 +39,7 @@ const CustomerList = () => {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    loadCustomers();
-  }, [filters, sortBy, sortOrder]);
-
-  const loadCustomers = async (reset = true) => {
+  const loadCustomers = useCallback(async (reset = true) => {
     try {
       setLoading(true);
       setError(null);
@@ -75,7 +66,25 @@ const CustomerList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, page]);
+
+  const searchCustomers = useCallback(async (term) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const results = await customerAPI.searchCustomers(term);
+      setCustomers(results);
+    } catch (err) {
+      console.error('Error searching customers:', err);
+      setError('Failed to load search results. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCustomers();
+  }, [filters, sortBy, sortOrder, loadCustomers]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -87,6 +96,24 @@ const CustomerList = () => {
     } else {
       setSortBy(column);
       setSortOrder('desc');
+    }
+  };
+
+  useEffect(() => {
+    if (searchTerm) {
+      searchCustomers(searchTerm);
+    } else {
+      loadCustomers();
+    }
+  }, [searchTerm, loadCustomers, searchCustomers]);
+
+  const handleExport = async () => {
+    try {
+      const { message } = await customerAPI.exportCustomers();
+      alert(message);
+    } catch (err) {
+      console.error('Error exporting customers:', err);
+      setError('Failed to export customers. Please try again.');
     }
   };
 
@@ -215,6 +242,13 @@ const CustomerList = () => {
             <Filter size={16} />
             Filters
             <ChevronDown size={16} className={`transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+          </button>
+          <button
+            onClick={handleExport}
+            className="btn-secondary inline-flex items-center gap-2"
+          >
+            <Download size={16} />
+            Export CSV
           </button>
           <button
             onClick={() => loadCustomers()}

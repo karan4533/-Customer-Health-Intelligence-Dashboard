@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pymongo import MongoClient
@@ -521,6 +521,45 @@ async def get_churn_predictions(limit: int = 10):
         logger.error(f"Error fetching churn predictions: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/customers/search")
+async def search_customers(query: str):
+    """Search customers by name, email, or ID"""
+    try:
+        cursor = db.customers.find({
+            "$or": [
+                {"name": {"$regex": query, "$options": "i"}},
+                {"email": {"$regex": query, "$options": "i"}},
+                {"customer_id": {"$regex": query, "$options": "i"}}
+            ]
+        }).limit(50)
+        customers = await cursor.to_list(length=50)
+        
+        for customer in customers:
+            if '_id' in customer:
+                del customer['_id']
+        
+        return customers
+    except Exception as e:
+        logger.error(f"Error searching customers: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/customers/export")
+async def export_customers():
+    """Export customer data as CSV"""
+    try:
+        cursor = db.customers.find({})
+        customers = await cursor.to_list(length=None)
+        
+        # Convert to CSV
+        output = "customer_id,name,email,phone,registration_date,customer_tier,region,total_orders,total_spent\n"
+        for customer in customers:
+            output += f"{customer['customer_id']},{customer['name']},{customer['email']},{customer['phone']},{customer['registration_date']},{customer['customer_tier']},{customer['region']},{customer['total_orders']},{customer['total_spent']}\n"
+        
+        return Response(content=output, media_type="text/csv")
+    except Exception as e:
+        logger.error(f"Error exporting customers: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/analytics/revenue-trends")
 async def get_revenue_trends():
     """Get monthly revenue trends"""
@@ -559,6 +598,8 @@ async def get_revenue_trends():
     except Exception as e:
         logger.error(f"Error fetching revenue trends: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+# Now lists all required dependencies for FastAPI in Dockerfile too.
 
 if __name__ == "__main__":
     import uvicorn

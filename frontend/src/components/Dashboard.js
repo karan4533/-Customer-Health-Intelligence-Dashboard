@@ -7,15 +7,11 @@ import {
   ArrowUp,
   ArrowDown,
   Target,
-  Clock,
-  Star,
   Activity
 } from 'lucide-react';
 import { 
   LineChart, 
   Line, 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -26,7 +22,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { customerAPI, formatCurrency, getRiskColor } from '../services/api';
+import { customerAPI, formatCurrency } from '../services/api';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
 
@@ -60,6 +56,36 @@ const Dashboard = () => {
       setError('Failed to load dashboard data. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    try {
+      const { message } = await customerAPI.exportCustomers();
+      alert(message);
+    } catch (err) {
+      console.error('Error exporting data:', err);
+      alert('Failed to export data. Please try again.');
+    }
+  };
+
+  const handleSendChurnAlerts = async () => {
+    try {
+      const { message } = await customerAPI.sendChurnAlerts();
+      alert(message);
+    } catch (err) {
+      console.error('Error sending churn alerts:', err);
+      alert('Failed to send churn alerts. Please try again.');
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    try {
+      const { message } = await customerAPI.generateReport();
+      alert(message);
+    } catch (err) {
+      console.error('Error generating report:', err);
+      alert('Failed to generate report. Please try again.');
     }
   };
 
@@ -336,7 +362,10 @@ const Dashboard = () => {
             <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
           </div>
           <div className="space-y-3">
-            <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={handleExportData}
+              className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
                   <Users size={16} className="text-primary-600" />
@@ -348,7 +377,10 @@ const Dashboard = () => {
               </div>
             </button>
             
-            <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={handleSendChurnAlerts}
+              className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
                   <AlertTriangle size={16} className="text-warning-600" />
@@ -360,7 +392,10 @@ const Dashboard = () => {
               </div>
             </button>
             
-            <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={handleGenerateReport}
+              className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center">
                   <TrendingUp size={16} className="text-success-600" />

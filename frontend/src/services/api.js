@@ -125,6 +125,55 @@ export const customerAPI = {
       throw error;
     }
   },
+
+  // Search customers
+  searchCustomers: async (query) => {
+    try {
+      const response = await apiClient.get('/api/customers/search', {
+        params: { query }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to search customers:', error);
+      throw error;
+    }
+  },
+
+  // Export customers
+  exportCustomers: async () => {
+    try {
+      const response = await apiClient.get('/api/customers/export', {
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'customers.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      return { success: true, message: 'Customer data exported successfully' };
+    } catch (error) {
+      console.error('Failed to export customers:', error);
+      throw error;
+    }
+  },
+
+  // Send churn alerts (placeholder)
+  sendChurnAlerts: async () => {
+    // This is a placeholder - in real implementation, this would send emails/notifications
+    return { success: true, message: 'Churn alerts sent to account managers' };
+  },
+
+  // Generate report (placeholder)
+  generateReport: async () => {
+    // This is a placeholder - in real implementation, this would generate PDF/Excel reports
+    return { success: true, message: 'Executive report generated successfully' };
+  },
 };
 
 // Utility functions

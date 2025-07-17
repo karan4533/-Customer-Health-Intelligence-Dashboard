@@ -12,6 +12,7 @@ import Dashboard from './components/Dashboard';
 import CustomerList from './components/CustomerList';
 import CustomerDetails from './components/CustomerDetails';
 import Analytics from './components/Analytics';
+import Settings from './components/Settings';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 
@@ -19,7 +20,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
     checkDataAndInitialize();
@@ -37,9 +37,6 @@ function App() {
         // No data exists, generate sample data
         console.log('No data found, generating sample data...');
         await customerAPI.generateSampleData(100);
-        setHasData(true);
-      } else {
-        setHasData(true);
       }
     } catch (err) {
       console.error('Error initializing app:', err);
@@ -102,6 +99,7 @@ function App() {
               <Route path="/customers" element={<CustomerList />} />
               <Route path="/customers/:customerId" element={<CustomerDetails />} />
               <Route path="/analytics" element={<Analytics />} />
+              <Route path="/settings" element={<Settings />} />
             </Routes>
           </main>
         </div>
